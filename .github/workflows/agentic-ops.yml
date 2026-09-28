@@ -1,0 +1,20 @@
+name: Agentic Ops Observatory
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  analyze-agent-workflows:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Agentic Ops Observatory
+        uses: ./
+        with:
+          fixtures: fixtures
+          fail-on-high: "true"

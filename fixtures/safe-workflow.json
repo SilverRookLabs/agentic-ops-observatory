@@ -1,0 +1,30 @@
+{
+  "id": "fixture-safe-workflow",
+  "name": "Draft-only issue summarizer with bounded retries",
+  "schedule": {
+    "recurring": false
+  },
+  "externalActions": [
+    {
+      "name": "Draft maintainer issue",
+      "type": "create-public-issue",
+      "external": true,
+      "draftOnly": true,
+      "requiresHumanApproval": true
+    }
+  ],
+  "dataFlows": [
+    {
+      "fromCategory": "public-repo-data",
+      "toCategory": "generated-artifact"
+    }
+  ],
+  "retryPolicy": {
+    "maxAttempts": 2,
+    "stopCondition": "Stop after two API failures and emit a diagnostic report."
+  },
+  "evidence": {
+    "sourceReferences": ["https://github.com/example/repo/issues/1"],
+    "reportPaths": ["agentic-ops-observatory-report.md"]
+  }
+}

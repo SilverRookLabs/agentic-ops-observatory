@@ -1,0 +1,15 @@
+{
+  "id": "fixture-unbounded-loop",
+  "name": "Agent retries failed API investigation without a stop rule",
+  "schedule": {
+    "recurring": true,
+    "cadence": "hourly"
+  },
+  "normalPath": {
+    "humanTriggered": false,
+    "resourceConsumption": ["github:rest-api", "openai:gpt-5.5"]
+  },
+  "retryPolicy": {
+    "unbounded": true
+  }
+}

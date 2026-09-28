@@ -1,0 +1,19 @@
+{
+  "id": "fixture-evidence-free-automation",
+  "name": "Automation recommends a consequential change with no durable evidence",
+  "automated": true,
+  "consequential": true,
+  "schedule": {
+    "recurring": false
+  },
+  "recommendation": {
+    "consequential": true,
+    "summary": "Recommend a consequential workflow change without traceable supporting evidence."
+  },
+  "evidence": {
+    "sourceReferences": [],
+    "commandOutputs": [],
+    "traceSummaries": [],
+    "reportPaths": []
+  }
+}

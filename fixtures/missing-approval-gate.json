@@ -1,0 +1,20 @@
+{
+  "id": "fixture-missing-approval-gate",
+  "name": "Release assistant can publish without approval",
+  "automated": true,
+  "schedule": {
+    "recurring": false
+  },
+  "externalActions": [
+    {
+      "name": "Publish GitHub release",
+      "type": "release",
+      "external": true,
+      "irreversible": true,
+      "requiresHumanApproval": false
+    }
+  ],
+  "evidence": {
+    "reportPaths": ["release-plan.md"]
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "id": "fixture-sensitive-context-exposure",
+  "name": "Support agent logs private customer context",
+  "schedule": {
+    "recurring": false
+  },
+  "dataFlows": [
+    {
+      "fromCategory": "customer-data",
+      "toCategory": "logs",
+      "masked": false,
+      "summary": "The workflow writes raw ticket context into build logs."
+    },
+    {
+      "fromCategory": "secret",
+      "toCategory": "prompt",
+      "masked": true,
+      "summary": "Masked credential reference is safe in the prompt."
+    }
+  ]
+}

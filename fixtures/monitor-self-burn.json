@@ -1,0 +1,14 @@
+{
+  "id": "fixture-monitor-self-burn",
+  "name": "Quota watcher consumes premium model quota",
+  "schedule": {
+    "recurring": true,
+    "cadence": "hourly"
+  },
+  "monitoredResources": ["openai:gpt-5.5", "codex-quota"],
+  "normalPath": {
+    "humanTriggered": false,
+    "resourceConsumption": ["openai:gpt-5.5"],
+    "summary": "No-op status check calls the premium model to decide whether premium quota is low."
+  }
+}

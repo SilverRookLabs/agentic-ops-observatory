@@ -1,0 +1,29 @@
+name: Agentic Ops Observatory
+description: Detect wasteful or unsafe agentic workflow patterns from audit fixtures.
+author: Silver Rook Labs
+
+inputs:
+  fixtures:
+    description: Newline-delimited fixture files or directories to inspect.
+    required: false
+    default: agentic-ops/**/*.json
+  fail-on-high:
+    description: Fail the action when high-severity findings are detected.
+    required: false
+    default: "true"
+
+outputs:
+  finding-count:
+    description: Number of findings emitted.
+  high-count:
+    description: Number of high-severity findings emitted.
+  report-path:
+    description: Path to the Markdown report.
+
+runs:
+  using: node24
+  main: src/index.js
+
+branding:
+  icon: activity
+  color: gray-dark

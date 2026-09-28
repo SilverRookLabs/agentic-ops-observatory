@@ -1,0 +1,18 @@
+{
+  "name": "agentic-ops-observatory",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Detect wasteful or unsafe agentic workflow patterns from audit fixtures.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "agentic-ops-observatory": "src/index.js"
+  },
+  "scripts": {
+    "test": "node --test",
+    "analyze": "node src/index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
