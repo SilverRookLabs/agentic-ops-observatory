@@ -16,6 +16,7 @@ function makeFixture(root, relativePath, fixture) {
 
 test("CLI expands glob fixture inputs", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "agentic-ops-"));
+  const reportPath = path.join(root, "report.md");
   makeFixture(root, "agentic-ops/workflows/quota.json", {
     id: "quota-watch",
     schedule: { recurring: true },
@@ -25,14 +26,30 @@ test("CLI expands glob fixture inputs", () => {
     },
   });
 
-  const output = execFileSync(process.execPath, [cliPath, path.join(root, "agentic-ops/**/*.json")], {
+  const output = execFileSync(process.execPath, [
+    cliPath,
+    path.join(root, "agentic-ops/**/*.json"),
+    "--output",
+    reportPath,
+    "--fail-on-high=false",
+  ], {
     cwd: path.resolve("."),
-    env: { ...process.env, INPUT_FAIL_ON_HIGH: "false" },
     encoding: "utf8",
   });
 
   assert.match(output, /Fixtures inspected: 1/);
   assert.match(output, /AO-001/);
+  assert.match(fs.readFileSync(reportPath, "utf8"), /Suggested next step/);
+});
+
+test("CLI help describes output and failure options", () => {
+  const output = execFileSync(process.execPath, [cliPath, "--help"], {
+    cwd: path.resolve("."),
+    encoding: "utf8",
+  });
+
+  assert.match(output, /--output <path>/);
+  assert.match(output, /--fail-on-high <bool>/);
 });
 
 test("CLI fails when no fixture files match", () => {

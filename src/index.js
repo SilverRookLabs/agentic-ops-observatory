@@ -3,6 +3,27 @@ import fs from "node:fs";
 import path from "node:path";
 import { analyzeFiles, renderMarkdown } from "./analyze.js";
 
+const DEFAULT_OUTPUT = "agentic-ops-observatory-report.md";
+
+function usage() {
+  return [
+    "Agentic Ops Observatory",
+    "",
+    "Usage:",
+    "  agentic-ops-observatory [options] [fixture-or-directory-or-glob ...]",
+    "",
+    "Options:",
+    "  --output <path>          Write the Markdown report to this path.",
+    "  --fail-on-high <bool>    Exit 1 when high-severity findings exist. Default: true.",
+    "  --help                   Show this help text.",
+    "",
+    "Examples:",
+    "  agentic-ops-observatory fixtures",
+    "  agentic-ops-observatory \"agentic-ops/**/*.json\" --output report.md",
+    "  INPUT_FAIL_ON_HIGH=false agentic-ops-observatory fixtures",
+  ].join("\n");
+}
+
 function hasGlobMagic(value) {
   return /[*?[\]]/.test(value);
 }
@@ -91,11 +112,56 @@ function expandInput(value) {
   return hasGlobMagic(value) ? expandGlob(value) : walkJsonFiles(value);
 }
 
-function parseInputs() {
-  const cliPaths = process.argv.slice(2);
+function parseBoolean(value, defaultValue) {
+  if (value === undefined || value === null || value === "") {
+    return defaultValue;
+  }
+  return !["0", "false", "no", "off"].includes(String(value).trim().toLowerCase());
+}
+
+function parseArgs(argv = process.argv.slice(2)) {
+  const paths = [];
+  let outputPath = process.env.INPUT_OUTPUT ?? process.env.AGENTIC_OPS_OUTPUT ?? DEFAULT_OUTPUT;
+  let failOnHigh = parseBoolean(process.env.INPUT_FAIL_ON_HIGH, true);
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (arg === "--help" || arg === "-h") {
+      return { help: true };
+    }
+    if (arg === "--output" || arg === "-o") {
+      outputPath = argv[index + 1];
+      index += 1;
+      continue;
+    }
+    if (arg.startsWith("--output=")) {
+      outputPath = arg.slice("--output=".length);
+      continue;
+    }
+    if (arg === "--fail-on-high") {
+      failOnHigh = parseBoolean(argv[index + 1], true);
+      index += 1;
+      continue;
+    }
+    if (arg.startsWith("--fail-on-high=")) {
+      failOnHigh = parseBoolean(arg.slice("--fail-on-high=".length), true);
+      continue;
+    }
+    paths.push(arg);
+  }
+
+  if (!outputPath) {
+    throw new Error("--output requires a non-empty path");
+  }
+
   const envInput = process.env.INPUT_FIXTURES?.split(/\r?\n/).map((value) => value.trim()).filter(Boolean) ?? [];
-  const requested = cliPaths.length > 0 ? cliPaths : envInput;
-  return requested.length > 0 ? requested : ["fixtures"];
+  const requested = paths.length > 0 ? paths : envInput;
+  return {
+    help: false,
+    inputs: requested.length > 0 ? requested : ["fixtures"],
+    outputPath,
+    failOnHigh,
+  };
 }
 
 function appendOutput(name, value) {
@@ -112,7 +178,13 @@ function appendSummary(markdown) {
   fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${markdown}\n`);
 }
 
-const inputs = parseInputs();
+const args = parseArgs();
+if (args.help) {
+  process.stdout.write(`${usage()}\n`);
+  process.exit(0);
+}
+
+const inputs = args.inputs;
 const files = [...new Set(inputs.flatMap(expandInput))].sort();
 if (files.length === 0) {
   process.stderr.write(`No JSON fixture files found for input: ${inputs.join(", ")}\n`);
@@ -121,7 +193,8 @@ if (files.length === 0) {
 }
 const results = analyzeFiles(files);
 const markdown = renderMarkdown(results);
-const reportPath = path.resolve("agentic-ops-observatory-report.md");
+const reportPath = path.resolve(args.outputPath);
+fs.mkdirSync(path.dirname(reportPath), { recursive: true });
 fs.writeFileSync(reportPath, markdown);
 
 const findings = results.flatMap((result) => result.findings);
@@ -132,7 +205,6 @@ appendOutput("report-path", reportPath);
 appendSummary(markdown);
 process.stdout.write(`${markdown}\n`);
 
-const failOnHigh = String(process.env.INPUT_FAIL_ON_HIGH ?? "true").toLowerCase() !== "false";
-if (failOnHigh && highCount > 0) {
+if (args.failOnHigh && highCount > 0) {
   process.exitCode = 1;
 }

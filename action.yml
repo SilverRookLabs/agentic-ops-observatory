@@ -11,6 +11,10 @@ inputs:
     description: Fail the action when high-severity findings are detected.
     required: false
     default: "true"
+  output:
+    description: Markdown report path to write.
+    required: false
+    default: agentic-ops-observatory-report.md
 
 outputs:
   finding-count:
@@ -21,7 +25,7 @@ outputs:
     description: Path to the Markdown report.
 
 runs:
-  using: node24
+  using: node20
   main: src/index.js
 
 branding:

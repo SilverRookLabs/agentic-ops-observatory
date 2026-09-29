@@ -45,6 +45,8 @@ test("renders markdown summary", () => {
   assert.match(markdown, /Agentic Ops Observatory Report/);
   assert.match(markdown, /AO-001/);
   assert.match(markdown, /codex-quota/);
+  assert.match(markdown, /Suggested next step/);
+  assert.match(markdown, /Medium severity: 0/);
 });
 
 test("flags external actions without approval gates", () => {

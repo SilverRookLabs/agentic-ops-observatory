@@ -17,4 +17,5 @@ jobs:
         uses: ./
         with:
           fixtures: fixtures
-          fail-on-high: "true"
+          output: agentic-ops-observatory-report.md
+          fail-on-high: "false"

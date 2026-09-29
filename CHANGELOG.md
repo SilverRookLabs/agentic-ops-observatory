@@ -2,6 +2,15 @@
 
 Agentic Ops Observatory is still a research preview. This log records public-facing product progress only.
 
+## 2026-09-29 - Working v0 Public Overhaul
+
+- Rewrote the README to describe the actual working fixture analyzer instead of a future scaffold.
+- Added CLI help, output-path selection, and explicit `--fail-on-high` control.
+- Added suggested next steps to report findings.
+- Regenerated the example report from the checked-in fixtures.
+- Expanded CLI tests around help text and report output.
+- Updated the GitHub Action metadata to expose an `output` input.
+
 ## 2026-09-27 - Public Scope Tightening
 
 - Limited the public package to the checker, synthetic fixtures, docs needed to run and understand it, and tests.

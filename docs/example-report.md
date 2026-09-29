@@ -3,6 +3,8 @@
 Fixtures inspected: 6
 Findings: 5
 High severity: 4
+Medium severity: 1
+Low severity: 0
 
 ## Findings
 
@@ -12,6 +14,7 @@ High severity: 4
 - Fixture: Automation recommends a consequential change with no durable evidence
 - Source: `fixtures/evidence-free-automation.json`
 - Detail: The workflow makes a consequential recommendation or action without durable evidence a reviewer can inspect.
+- Suggested next step: Attach durable evidence references before allowing consequential recommendations.
 
 ### AO-002: Missing human gate for external action
 
@@ -20,6 +23,7 @@ High severity: 4
 - Source: `fixtures/missing-approval-gate.json`
 - Actions: `Publish GitHub release`
 - Detail: The workflow can perform an external action without an explicit human approval gate.
+- Suggested next step: Convert the action to draft-only output or add a human approval gate before execution.
 
 ### AO-001: Monitor self-burn
 
@@ -28,6 +32,7 @@ High severity: 4
 - Source: `fixtures/monitor-self-burn.json`
 - Resources: `openai:gpt-5.5`
 - Detail: The normal path consumes a resource the workflow is meant to monitor.
+- Suggested next step: Move the monitor to a cheaper path, cache the check, or require human-triggered execution.
 
 ### AO-003: Sensitive context exposure
 
@@ -36,6 +41,7 @@ High severity: 4
 - Source: `fixtures/sensitive-context-exposure.json`
 - Flows: `customer-data -> logs`
 - Detail: Sensitive input can flow into prompts, logs, URLs, generated artifacts, or another exposed sink.
+- Suggested next step: Mask or summarize sensitive data before it reaches prompts, logs, URLs, or public artifacts.
 
 ### AO-005: Unbounded retry or loop
 
@@ -43,3 +49,4 @@ High severity: 4
 - Fixture: Agent retries failed API investigation without a stop rule
 - Source: `fixtures/unbounded-loop.json`
 - Detail: The workflow can repeatedly call tools, APIs, models, or external actions without a declared stopping condition.
+- Suggested next step: Add max attempts, time budget, cost budget, or an explicit stop condition.

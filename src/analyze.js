@@ -170,12 +170,16 @@ export function analyzeFixture(fixture, sourcePath = "<memory>") {
 export function renderMarkdown(results) {
   const findings = results.flatMap((result) => result.findings.map((finding) => ({ ...finding, fixtureName: result.name })));
   const highCount = findings.filter((finding) => finding.severity === "high").length;
+  const mediumCount = findings.filter((finding) => finding.severity === "medium").length;
+  const lowCount = findings.filter((finding) => finding.severity === "low").length;
   const lines = [
     "# Agentic Ops Observatory Report",
     "",
     `Fixtures inspected: ${results.length}`,
     `Findings: ${findings.length}`,
     `High severity: ${highCount}`,
+    `Medium severity: ${mediumCount}`,
+    `Low severity: ${lowCount}`,
     "",
   ];
 
@@ -201,10 +205,28 @@ export function renderMarkdown(results) {
       lines.push(`- Flows: ${finding.flows.map((flow) => `\`${flow}\``).join(", ")}`);
     }
     lines.push(`- Detail: ${finding.message}`);
+    lines.push(`- Suggested next step: ${finding.nextStep ?? nextStepForFinding(finding.id)}`);
     lines.push("");
   }
 
   return lines.join("\n");
+}
+
+function nextStepForFinding(id) {
+  switch (id) {
+    case "AO-001":
+      return "Move the monitor to a cheaper path, cache the check, or require human-triggered execution.";
+    case "AO-002":
+      return "Convert the action to draft-only output or add a human approval gate before execution.";
+    case "AO-003":
+      return "Mask or summarize sensitive data before it reaches prompts, logs, URLs, or public artifacts.";
+    case "AO-004":
+      return "Attach durable evidence references before allowing consequential recommendations.";
+    case "AO-005":
+      return "Add max attempts, time budget, cost budget, or an explicit stop condition.";
+    default:
+      return "Review the fixture and add a narrower operating boundary.";
+  }
 }
 
 export function readFixture(filePath) {
