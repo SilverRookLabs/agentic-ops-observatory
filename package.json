@@ -11,7 +11,7 @@
   "scripts": {
     "test": "node --test",
     "analyze": "node src/index.js",
-    "generate:example": "node src/index.js fixtures --output docs/example-report.md --fail-on-high=false"
+    "generate:example": "node src/index.js fixtures --output docs/example-report.md --json-output docs/example-report.json --fail-on-high=false"
   },
   "engines": {
     "node": ">=20"

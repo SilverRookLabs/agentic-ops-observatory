@@ -2,6 +2,14 @@
 
 Agentic Ops Observatory is still a research preview. This log records public-facing product progress only.
 
+## 2026-09-30 - CI Report Integration Pass
+
+- Added optional machine-readable JSON reports with `--json-output`.
+- Added `--list-rules` for automation and documentation consumers.
+- Added medium, low, and JSON-report Action outputs.
+- Added CI integration documentation and a checked-in JSON example report.
+- Expanded CLI tests for JSON output and rule catalog behavior.
+
 ## 2026-09-29 - Working v0 Public Overhaul
 
 - Rewrote the README to describe the actual working fixture analyzer instead of a future scaffold.

@@ -49,7 +49,52 @@ test("CLI help describes output and failure options", () => {
   });
 
   assert.match(output, /--output <path>/);
+  assert.match(output, /--json-output <path>/);
+  assert.match(output, /--list-rules/);
   assert.match(output, /--fail-on-high <bool>/);
+});
+
+test("CLI writes a machine-readable JSON report", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "agentic-ops-json-"));
+  const markdownPath = path.join(root, "report.md");
+  const jsonPath = path.join(root, "report.json");
+  makeFixture(root, "agentic-ops/quota.json", {
+    id: "quota-watch",
+    schedule: { recurring: true },
+    monitoredResources: ["codex-quota"],
+    normalPath: {
+      resourceConsumption: ["codex quota"],
+    },
+  });
+
+  execFileSync(process.execPath, [
+    cliPath,
+    path.join(root, "agentic-ops"),
+    "--output",
+    markdownPath,
+    "--json-output",
+    jsonPath,
+    "--fail-on-high=false",
+  ], {
+    cwd: path.resolve("."),
+    encoding: "utf8",
+  });
+
+  const report = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
+  assert.equal(report.summary.fixtureCount, 1);
+  assert.equal(report.summary.findingCount, 1);
+  assert.equal(report.summary.severityCounts.high, 1);
+  assert.equal(report.rules.length, 5);
+});
+
+test("CLI prints detector rules as JSON", () => {
+  const output = execFileSync(process.execPath, [cliPath, "--list-rules"], {
+    cwd: path.resolve("."),
+    encoding: "utf8",
+  });
+
+  const parsed = JSON.parse(output);
+  assert.deepEqual(parsed.rules.map((rule) => rule.id), ["AO-001", "AO-002", "AO-003", "AO-004", "AO-005"]);
 });
 
 test("CLI fails when no fixture files match", () => {

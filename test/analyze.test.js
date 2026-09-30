@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { analyzeFixture, renderMarkdown } from "../src/analyze.js";
+import { RULES, analyzeFixture, renderMarkdown, summarizeResults } from "../src/analyze.js";
 
 test("flags recurring monitor self-burn", () => {
   const result = analyzeFixture({
@@ -47,6 +47,30 @@ test("renders markdown summary", () => {
   assert.match(markdown, /codex-quota/);
   assert.match(markdown, /Suggested next step/);
   assert.match(markdown, /Medium severity: 0/);
+});
+
+test("summarizes findings for machine-readable reports", () => {
+  const summary = summarizeResults([
+    analyzeFixture({
+      id: "quota-watch",
+      schedule: { recurring: true },
+      monitoredResources: ["codex-quota"],
+      normalPath: {
+        resourceConsumption: ["codex quota"],
+      },
+    }, "fixture.json"),
+  ]);
+
+  assert.equal(summary.fixtureCount, 1);
+  assert.equal(summary.findingCount, 1);
+  assert.equal(summary.severityCounts.high, 1);
+  assert.equal(summary.findings[0].fixtureId, "quota-watch");
+  assert.equal(summary.findings[0].nextStep.includes("cheaper path"), true);
+});
+
+test("exposes a stable rule catalog", () => {
+  assert.deepEqual(RULES.map((rule) => rule.id), ["AO-001", "AO-002", "AO-003", "AO-004", "AO-005"]);
+  assert.equal(RULES.every((rule) => rule.nextStep), true);
 });
 
 test("flags external actions without approval gates", () => {

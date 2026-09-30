@@ -15,14 +15,24 @@ inputs:
     description: Markdown report path to write.
     required: false
     default: agentic-ops-observatory-report.md
+  json-output:
+    description: Optional machine-readable JSON report path to write.
+    required: false
+    default: ""
 
 outputs:
   finding-count:
     description: Number of findings emitted.
   high-count:
     description: Number of high-severity findings emitted.
+  medium-count:
+    description: Number of medium-severity findings emitted.
+  low-count:
+    description: Number of low-severity findings emitted.
   report-path:
     description: Path to the Markdown report.
+  json-report-path:
+    description: Path to the JSON report when json-output is configured.
 
 runs:
   using: node20

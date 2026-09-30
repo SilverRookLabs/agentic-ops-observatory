@@ -47,6 +47,46 @@ const EXTERNAL_ACTIONS = new Set([
   "release",
 ]);
 
+export const RULES = [
+  {
+    id: "AO-001",
+    title: "Monitor self-burn",
+    defaultSeverity: "high",
+    summary: "A recurring monitor consumes the scarce resource it is meant to protect.",
+    nextStep: "Move the monitor to a cheaper path, cache the check, or require human-triggered execution.",
+  },
+  {
+    id: "AO-002",
+    title: "Missing human gate for external action",
+    defaultSeverity: "high",
+    summary: "External or irreversible actions can execute without an explicit human approval gate.",
+    nextStep: "Convert the action to draft-only output or add a human approval gate before execution.",
+  },
+  {
+    id: "AO-003",
+    title: "Sensitive context exposure",
+    defaultSeverity: "medium",
+    summary: "Sensitive inputs can flow into prompts, logs, URLs, generated artifacts, or public reports.",
+    nextStep: "Mask or summarize sensitive data before it reaches prompts, logs, URLs, or public artifacts.",
+  },
+  {
+    id: "AO-004",
+    title: "Evidence-free automation",
+    defaultSeverity: "high",
+    summary: "Consequential recommendations or actions lack durable evidence for review.",
+    nextStep: "Attach durable evidence references before allowing consequential recommendations.",
+  },
+  {
+    id: "AO-005",
+    title: "Unbounded retry or loop",
+    defaultSeverity: "high",
+    summary: "Repeated model, tool, API, or external-action work lacks stop conditions or budgets.",
+    nextStep: "Add max attempts, time budget, cost budget, or an explicit stop condition.",
+  },
+];
+
+const RULE_BY_ID = new Map(RULES.map((rule) => [rule.id, rule]));
+
 export function normalizeResource(value) {
   const key = String(value ?? "").trim().toLowerCase();
   return RESOURCE_ALIASES.get(key) ?? key;
@@ -168,18 +208,16 @@ export function analyzeFixture(fixture, sourcePath = "<memory>") {
 }
 
 export function renderMarkdown(results) {
-  const findings = results.flatMap((result) => result.findings.map((finding) => ({ ...finding, fixtureName: result.name })));
-  const highCount = findings.filter((finding) => finding.severity === "high").length;
-  const mediumCount = findings.filter((finding) => finding.severity === "medium").length;
-  const lowCount = findings.filter((finding) => finding.severity === "low").length;
+  const summary = summarizeResults(results);
+  const findings = summary.findings;
   const lines = [
     "# Agentic Ops Observatory Report",
     "",
-    `Fixtures inspected: ${results.length}`,
-    `Findings: ${findings.length}`,
-    `High severity: ${highCount}`,
-    `Medium severity: ${mediumCount}`,
-    `Low severity: ${lowCount}`,
+    `Fixtures inspected: ${summary.fixtureCount}`,
+    `Findings: ${summary.findingCount}`,
+    `High severity: ${summary.severityCounts.high}`,
+    `Medium severity: ${summary.severityCounts.medium}`,
+    `Low severity: ${summary.severityCounts.low}`,
     "",
   ];
 
@@ -205,7 +243,7 @@ export function renderMarkdown(results) {
       lines.push(`- Flows: ${finding.flows.map((flow) => `\`${flow}\``).join(", ")}`);
     }
     lines.push(`- Detail: ${finding.message}`);
-    lines.push(`- Suggested next step: ${finding.nextStep ?? nextStepForFinding(finding.id)}`);
+    lines.push(`- Suggested next step: ${finding.nextStep}`);
     lines.push("");
   }
 
@@ -213,20 +251,28 @@ export function renderMarkdown(results) {
 }
 
 function nextStepForFinding(id) {
-  switch (id) {
-    case "AO-001":
-      return "Move the monitor to a cheaper path, cache the check, or require human-triggered execution.";
-    case "AO-002":
-      return "Convert the action to draft-only output or add a human approval gate before execution.";
-    case "AO-003":
-      return "Mask or summarize sensitive data before it reaches prompts, logs, URLs, or public artifacts.";
-    case "AO-004":
-      return "Attach durable evidence references before allowing consequential recommendations.";
-    case "AO-005":
-      return "Add max attempts, time budget, cost budget, or an explicit stop condition.";
-    default:
-      return "Review the fixture and add a narrower operating boundary.";
-  }
+  return RULE_BY_ID.get(id)?.nextStep ?? "Review the fixture and add a narrower operating boundary.";
+}
+
+export function summarizeResults(results) {
+  const findings = results.flatMap((result) => result.findings.map((finding) => ({
+    ...finding,
+    fixtureId: result.fixtureId,
+    fixtureName: result.name,
+    ruleSummary: RULE_BY_ID.get(finding.id)?.summary,
+    nextStep: finding.nextStep ?? nextStepForFinding(finding.id),
+  })));
+
+  return {
+    fixtureCount: results.length,
+    findingCount: findings.length,
+    severityCounts: {
+      high: findings.filter((finding) => finding.severity === "high").length,
+      medium: findings.filter((finding) => finding.severity === "medium").length,
+      low: findings.filter((finding) => finding.severity === "low").length,
+    },
+    findings,
+  };
 }
 
 export function readFixture(filePath) {

@@ -18,4 +18,5 @@ jobs:
         with:
           fixtures: fixtures
           output: agentic-ops-observatory-report.md
+          json-output: agentic-ops-observatory-report.json
           fail-on-high: "false"

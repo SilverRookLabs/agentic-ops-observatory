@@ -28,6 +28,12 @@ Agentic Ops Observatory reads JSON fixtures that describe a workflow's operating
 | AO-004 Evidence-Free Automation | `consequential`, `recommendation.consequential`, `evidence` |
 | AO-005 Unbounded Retry Or Loop | `schedule.recurring`, `retryPolicy`, `loopPolicy`, `normalPath.resourceConsumption` |
 
+The current detector catalog is also available from the CLI:
+
+```bash
+node src/index.js --list-rules
+```
+
 ## Example
 
 ```json

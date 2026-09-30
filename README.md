@@ -10,8 +10,9 @@ It is not a general trace parser yet. The current version trusts the fixture dat
 
 - Local Node CLI for JSON fixture files, directories, and simple glob patterns.
 - GitHub Action wrapper.
-- Markdown report generation.
+- Markdown and JSON report generation.
 - High-severity CI failure mode.
+- Machine-readable Action outputs for finding counts and report paths.
 - AO-001 through AO-005 detectors:
   - monitor self-burn;
   - missing human approval gate;
@@ -35,7 +36,10 @@ The analyzer writes `agentic-ops-observatory-report.md` by default.
 To choose an output path:
 
 ```bash
-node src/index.js fixtures --output reports/agentic-ops.md --fail-on-high=false
+node src/index.js fixtures \
+  --output reports/agentic-ops.md \
+  --json-output reports/agentic-ops.json \
+  --fail-on-high=false
 ```
 
 To make CI fail when high-severity findings exist, omit `--fail-on-high=false`:
@@ -54,6 +58,8 @@ The checked-in fixtures currently produce:
 - 1 medium-severity finding.
 
 See [docs/example-report.md](docs/example-report.md).
+
+The same run can also produce [docs/example-report.json](docs/example-report.json) for dashboards, CI comments, or follow-up automation.
 
 ## GitHub Action
 
@@ -75,10 +81,22 @@ jobs:
         with:
           fixtures: agentic-ops
           output: agentic-ops-observatory-report.md
+          json-output: agentic-ops-observatory-report.json
           fail-on-high: "true"
 ```
 
 Use `fail-on-high: "false"` when you want a report-only pass.
+
+Action outputs:
+
+- `finding-count`
+- `high-count`
+- `medium-count`
+- `low-count`
+- `report-path`
+- `json-report-path`
+
+See [docs/ci-integration.md](docs/ci-integration.md) for a fuller CI example.
 
 ## Fixture Format
 

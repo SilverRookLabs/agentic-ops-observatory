@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 import fs from "node:fs";
 import path from "node:path";
-import { analyzeFiles, renderMarkdown } from "./analyze.js";
+import { RULES, analyzeFiles, renderMarkdown, summarizeResults } from "./analyze.js";
 
-const DEFAULT_OUTPUT = "agentic-ops-observatory-report.md";
+const DEFAULT_MARKDOWN_OUTPUT = "agentic-ops-observatory-report.md";
+const DEFAULT_JSON_OUTPUT = "agentic-ops-observatory-report.json";
 
 function usage() {
   return [
@@ -14,12 +15,14 @@ function usage() {
     "",
     "Options:",
     "  --output <path>          Write the Markdown report to this path.",
+    "  --json-output <path>     Write a machine-readable JSON report to this path.",
+    "  --list-rules             Print the detector rule catalog as JSON.",
     "  --fail-on-high <bool>    Exit 1 when high-severity findings exist. Default: true.",
     "  --help                   Show this help text.",
     "",
     "Examples:",
     "  agentic-ops-observatory fixtures",
-    "  agentic-ops-observatory \"agentic-ops/**/*.json\" --output report.md",
+    "  agentic-ops-observatory \"agentic-ops/**/*.json\" --output report.md --json-output report.json",
     "  INPUT_FAIL_ON_HIGH=false agentic-ops-observatory fixtures",
   ].join("\n");
 }
@@ -121,13 +124,17 @@ function parseBoolean(value, defaultValue) {
 
 function parseArgs(argv = process.argv.slice(2)) {
   const paths = [];
-  let outputPath = process.env.INPUT_OUTPUT ?? process.env.AGENTIC_OPS_OUTPUT ?? DEFAULT_OUTPUT;
+  let outputPath = process.env.INPUT_OUTPUT ?? process.env.AGENTIC_OPS_OUTPUT ?? DEFAULT_MARKDOWN_OUTPUT;
+  let jsonOutputPath = process.env.INPUT_JSON_OUTPUT ?? process.env.AGENTIC_OPS_JSON_OUTPUT ?? "";
   let failOnHigh = parseBoolean(process.env.INPUT_FAIL_ON_HIGH, true);
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--help" || arg === "-h") {
       return { help: true };
+    }
+    if (arg === "--list-rules") {
+      return { listRules: true };
     }
     if (arg === "--output" || arg === "-o") {
       outputPath = argv[index + 1];
@@ -136,6 +143,15 @@ function parseArgs(argv = process.argv.slice(2)) {
     }
     if (arg.startsWith("--output=")) {
       outputPath = arg.slice("--output=".length);
+      continue;
+    }
+    if (arg === "--json-output") {
+      jsonOutputPath = argv[index + 1] || DEFAULT_JSON_OUTPUT;
+      index += 1;
+      continue;
+    }
+    if (arg.startsWith("--json-output=")) {
+      jsonOutputPath = arg.slice("--json-output=".length) || DEFAULT_JSON_OUTPUT;
       continue;
     }
     if (arg === "--fail-on-high") {
@@ -158,8 +174,10 @@ function parseArgs(argv = process.argv.slice(2)) {
   const requested = paths.length > 0 ? paths : envInput;
   return {
     help: false,
+    listRules: false,
     inputs: requested.length > 0 ? requested : ["fixtures"],
     outputPath,
+    jsonOutputPath,
     failOnHigh,
   };
 }
@@ -183,6 +201,10 @@ if (args.help) {
   process.stdout.write(`${usage()}\n`);
   process.exit(0);
 }
+if (args.listRules) {
+  process.stdout.write(`${JSON.stringify({ rules: RULES }, null, 2)}\n`);
+  process.exit(0);
+}
 
 const inputs = args.inputs;
 const files = [...new Set(inputs.flatMap(expandInput))].sort();
@@ -192,19 +214,28 @@ if (files.length === 0) {
   process.exit();
 }
 const results = analyzeFiles(files);
+const summary = summarizeResults(results);
 const markdown = renderMarkdown(results);
 const reportPath = path.resolve(args.outputPath);
 fs.mkdirSync(path.dirname(reportPath), { recursive: true });
 fs.writeFileSync(reportPath, markdown);
 
-const findings = results.flatMap((result) => result.findings);
-const highCount = findings.filter((finding) => finding.severity === "high").length;
-appendOutput("finding-count", findings.length);
-appendOutput("high-count", highCount);
+let jsonReportPath = "";
+if (args.jsonOutputPath) {
+  jsonReportPath = path.resolve(args.jsonOutputPath);
+  fs.mkdirSync(path.dirname(jsonReportPath), { recursive: true });
+  fs.writeFileSync(jsonReportPath, `${JSON.stringify({ summary, results, rules: RULES }, null, 2)}\n`);
+}
+
+appendOutput("finding-count", summary.findingCount);
+appendOutput("high-count", summary.severityCounts.high);
+appendOutput("medium-count", summary.severityCounts.medium);
+appendOutput("low-count", summary.severityCounts.low);
 appendOutput("report-path", reportPath);
+appendOutput("json-report-path", jsonReportPath);
 appendSummary(markdown);
 process.stdout.write(`${markdown}\n`);
 
-if (args.failOnHigh && highCount > 0) {
+if (args.failOnHigh && summary.severityCounts.high > 0) {
   process.exitCode = 1;
 }

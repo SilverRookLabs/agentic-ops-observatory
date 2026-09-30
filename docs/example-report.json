@@ -1,0 +1,195 @@
+{
+  "summary": {
+    "fixtureCount": 6,
+    "findingCount": 5,
+    "severityCounts": {
+      "high": 4,
+      "medium": 1,
+      "low": 0
+    },
+    "findings": [
+      {
+        "id": "AO-004",
+        "severity": "high",
+        "title": "Evidence-free automation",
+        "message": "The workflow makes a consequential recommendation or action without durable evidence a reviewer can inspect.",
+        "sourcePath": "fixtures/evidence-free-automation.json",
+        "fixtureId": "fixture-evidence-free-automation",
+        "fixtureName": "Automation recommends a consequential change with no durable evidence",
+        "ruleSummary": "Consequential recommendations or actions lack durable evidence for review.",
+        "nextStep": "Attach durable evidence references before allowing consequential recommendations."
+      },
+      {
+        "id": "AO-002",
+        "severity": "high",
+        "title": "Missing human gate for external action",
+        "message": "The workflow can perform an external action without an explicit human approval gate.",
+        "sourcePath": "fixtures/missing-approval-gate.json",
+        "actions": [
+          "Publish GitHub release"
+        ],
+        "fixtureId": "fixture-missing-approval-gate",
+        "fixtureName": "Release assistant can publish without approval",
+        "ruleSummary": "External or irreversible actions can execute without an explicit human approval gate.",
+        "nextStep": "Convert the action to draft-only output or add a human approval gate before execution."
+      },
+      {
+        "id": "AO-001",
+        "severity": "high",
+        "title": "Monitor self-burn",
+        "message": "The normal path consumes a resource the workflow is meant to monitor.",
+        "sourcePath": "fixtures/monitor-self-burn.json",
+        "resources": [
+          "openai:gpt-5.5"
+        ],
+        "fixtureId": "fixture-monitor-self-burn",
+        "fixtureName": "Quota watcher consumes premium model quota",
+        "ruleSummary": "A recurring monitor consumes the scarce resource it is meant to protect.",
+        "nextStep": "Move the monitor to a cheaper path, cache the check, or require human-triggered execution."
+      },
+      {
+        "id": "AO-003",
+        "severity": "medium",
+        "title": "Sensitive context exposure",
+        "message": "Sensitive input can flow into prompts, logs, URLs, generated artifacts, or another exposed sink.",
+        "sourcePath": "fixtures/sensitive-context-exposure.json",
+        "flows": [
+          "customer-data -> logs"
+        ],
+        "fixtureId": "fixture-sensitive-context-exposure",
+        "fixtureName": "Support agent logs private customer context",
+        "ruleSummary": "Sensitive inputs can flow into prompts, logs, URLs, generated artifacts, or public reports.",
+        "nextStep": "Mask or summarize sensitive data before it reaches prompts, logs, URLs, or public artifacts."
+      },
+      {
+        "id": "AO-005",
+        "severity": "high",
+        "title": "Unbounded retry or loop",
+        "message": "The workflow can repeatedly call tools, APIs, models, or external actions without a declared stopping condition.",
+        "sourcePath": "fixtures/unbounded-loop.json",
+        "fixtureId": "fixture-unbounded-loop",
+        "fixtureName": "Agent retries failed API investigation without a stop rule",
+        "ruleSummary": "Repeated model, tool, API, or external-action work lacks stop conditions or budgets.",
+        "nextStep": "Add max attempts, time budget, cost budget, or an explicit stop condition."
+      }
+    ]
+  },
+  "results": [
+    {
+      "fixtureId": "fixture-evidence-free-automation",
+      "name": "Automation recommends a consequential change with no durable evidence",
+      "findings": [
+        {
+          "id": "AO-004",
+          "severity": "high",
+          "title": "Evidence-free automation",
+          "message": "The workflow makes a consequential recommendation or action without durable evidence a reviewer can inspect.",
+          "sourcePath": "fixtures/evidence-free-automation.json"
+        }
+      ]
+    },
+    {
+      "fixtureId": "fixture-missing-approval-gate",
+      "name": "Release assistant can publish without approval",
+      "findings": [
+        {
+          "id": "AO-002",
+          "severity": "high",
+          "title": "Missing human gate for external action",
+          "message": "The workflow can perform an external action without an explicit human approval gate.",
+          "sourcePath": "fixtures/missing-approval-gate.json",
+          "actions": [
+            "Publish GitHub release"
+          ]
+        }
+      ]
+    },
+    {
+      "fixtureId": "fixture-monitor-self-burn",
+      "name": "Quota watcher consumes premium model quota",
+      "findings": [
+        {
+          "id": "AO-001",
+          "severity": "high",
+          "title": "Monitor self-burn",
+          "message": "The normal path consumes a resource the workflow is meant to monitor.",
+          "sourcePath": "fixtures/monitor-self-burn.json",
+          "resources": [
+            "openai:gpt-5.5"
+          ]
+        }
+      ]
+    },
+    {
+      "fixtureId": "fixture-safe-workflow",
+      "name": "Draft-only issue summarizer with bounded retries",
+      "findings": []
+    },
+    {
+      "fixtureId": "fixture-sensitive-context-exposure",
+      "name": "Support agent logs private customer context",
+      "findings": [
+        {
+          "id": "AO-003",
+          "severity": "medium",
+          "title": "Sensitive context exposure",
+          "message": "Sensitive input can flow into prompts, logs, URLs, generated artifacts, or another exposed sink.",
+          "sourcePath": "fixtures/sensitive-context-exposure.json",
+          "flows": [
+            "customer-data -> logs"
+          ]
+        }
+      ]
+    },
+    {
+      "fixtureId": "fixture-unbounded-loop",
+      "name": "Agent retries failed API investigation without a stop rule",
+      "findings": [
+        {
+          "id": "AO-005",
+          "severity": "high",
+          "title": "Unbounded retry or loop",
+          "message": "The workflow can repeatedly call tools, APIs, models, or external actions without a declared stopping condition.",
+          "sourcePath": "fixtures/unbounded-loop.json"
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "AO-001",
+      "title": "Monitor self-burn",
+      "defaultSeverity": "high",
+      "summary": "A recurring monitor consumes the scarce resource it is meant to protect.",
+      "nextStep": "Move the monitor to a cheaper path, cache the check, or require human-triggered execution."
+    },
+    {
+      "id": "AO-002",
+      "title": "Missing human gate for external action",
+      "defaultSeverity": "high",
+      "summary": "External or irreversible actions can execute without an explicit human approval gate.",
+      "nextStep": "Convert the action to draft-only output or add a human approval gate before execution."
+    },
+    {
+      "id": "AO-003",
+      "title": "Sensitive context exposure",
+      "defaultSeverity": "medium",
+      "summary": "Sensitive inputs can flow into prompts, logs, URLs, generated artifacts, or public reports.",
+      "nextStep": "Mask or summarize sensitive data before it reaches prompts, logs, URLs, or public artifacts."
+    },
+    {
+      "id": "AO-004",
+      "title": "Evidence-free automation",
+      "defaultSeverity": "high",
+      "summary": "Consequential recommendations or actions lack durable evidence for review.",
+      "nextStep": "Attach durable evidence references before allowing consequential recommendations."
+    },
+    {
+      "id": "AO-005",
+      "title": "Unbounded retry or loop",
+      "defaultSeverity": "high",
+      "summary": "Repeated model, tool, API, or external-action work lacks stop conditions or budgets.",
+      "nextStep": "Add max attempts, time budget, cost budget, or an explicit stop condition."
+    }
+  ]
+}
